@@ -3,22 +3,30 @@
 
 arch = $(uname -a)
 phycpu = $(nproc)
-vcpu = 
+# cat /proc/cpuinfo | grep 'physical id' | wc -l
+vcpu = $(cat /proc/cpuinfo | grep  processor | wc -l)
 totalmem = $(free -m | grep 'Mem' | awk  '{print $2}')
 usedmem = $(free -m | grep 'Mem' | awk  '{print $3}')
-resultmem = 
+resultmem = $(free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100 }')
+
+#free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100 }'
+
 
 totaldisk = 
 useddisk =
-resultdisk =
+resultdisk =$(df -BM --total | grep total | awk '{printf "%d/%dGb (%d%%)", $3, ($2/1024), $5 }')
+
+df -h --total | grep total | awk '{printf "%d/%d (%.2f%%)Gb", $3, $2, $3/$2*100 }'
+
+df -BM --total | grep total | awk '{printf "%d/%dGb (%d%%)", $3, ($2/1024), $5 }'
 cpuload = 
-lastboot = $(who -b | awk '{print $3,$4}')
+lastboot = $(who -b | awk '{printf $3,$4}')
 lvmuse = $(lvscan | grep -q 'ACTIVE' && echo "yes" || echo "no")
 ctpc = $(ss -tunlp| grep 'tcp' | wc -l)
 ulog = $(who | wc -l)
 network1 = $(hostname -I)
 network2 = $(ip addr | grep 'link/ether'| awk '{print $2}')
-sucom =
+sucom = $(journalctl _COMM=sudo | grep COMMAND | wc -l)
 	
 echo "#Architecture: $(uname -a)"
 #The nproc command basically displays in output the number of available processing units. 
@@ -34,13 +42,17 @@ echo "#Memory Usage: $(free)"
 free -h : human friendly output of RAM...?
 vmstat
 top : check RAM usage
+
 cat /proc/meminfo : RAM info
 #free -m | grep 'Mem' | awk  ' {print $2}' ####total
 #free -m | awk  '$1=="Mem:" {print $2}'
 #free -m | grep 'Mem' | awk  ' {print $3}' ### used 
 #free -m | awk  '$1=="Mem:" {print $3}'
+# awk '{printf ~~} -> oneline and calculate
 echo "#Disk Usage: $()"
 echo "#CPU load: $()"
+#$(top -bn1 | grep %Cpu | awk '{print $2}')
+# top -bn1 | grep %Cpu | awk '{print $2}'
 echo "#Last boot: $()"
 echo "#LVM use: $(lvscan | grep -q 'ACTIVE' && echo "#LVM use : yes" || echo "#LVM use : no")"
 #vgdisplay
@@ -60,16 +72,19 @@ echo "#Network: IP $(hostname -I)($(ip addr | grep 'link/ether'| awk '{print $2}
 
 echo "#Sudo: $() cmd"
 # journalctl | grep 'COMMAND=' | wc -l
+# journalctl _COMM=sudo | grep COMMAND | wc -l
 #echo "#Sudo: $(journalctl | grep 'COMMAND=' | wc -l) cmd"
 #journalctl : ournalctl will display your logs in a format similar to the traditional syslog format. Each line starts with the date (in the server’s local time), followed by the server’s hostname, the process name, and the message for the log.
 #sudo journalctl | wc -l
 
 
-wall ' 
+wall " 
 	#Architecture: $arch
 	#CPU physical : $phycpu
 	#vCPU : $vcpu
-	#Memory Usage: $usedmem/$totalmem MB ($resultmem%)
+	#Memory Usage: $resultmem
+	#Disk Usage: $useddisk/$totaldiskGb ($resultdisk%)
+	
 	#Disk Usage: $useddisk/$totaldiskGb ($resultdisk%)
 	#CPU load: $cpuload%
 	#Last boot: $lastboot
@@ -77,4 +92,38 @@ wall '
 	#Connections TPC : $ctpc ESTABLISHED
 	#User log: $ulog
 	#Network: IP $network1 $network2
-	#Sudo: $sucom cmd'
+	#Sudo: $sucom cmd"
+
+#----------------------------------------------------------------
+#!/bin/bash
+
+arch=$(uname -a)
+phycpu=$(nproc)
+# cat /proc/cpuinfo | grep 'physical id' | wc -l
+vcpu=$(cat /proc/cpuinfo | grep  processor | wc -l)
+resultmem=$(free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100 }')
+resultdisk=$(df -BM --total | grep total | awk '{printf "%d/%dGb (%d%%)", $3, ($2/1024), $5 }')
+cpuload=$(top -bn1 | grep %Cpu | awk '{print $2}')
+lastboot=$(who -b | awk '{printf $3,$4}')
+lvmuse=$(lvscan | grep -q 'ACTIVE' && echo "yes" || echo "no")
+ctpc=$(ss -tunlp| grep 'tcp' | wc -l)
+# ss | grep tcp | wc -l
+ulog=$(who | wc -l)
+network1=$(hostname -I)
+network2=$(ip addr | grep 'link/ether'| awk '{print $2}')
+sucom=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
+
+wall " 
+	#Architecture: $arch
+	#CPU physical : $phycpu
+	#vCPU : $vcpu
+	#Memory Usage: $resultmem
+	#Disk Usage: $resultdisk
+	#CPU load: $cpuload%
+	#Last boot: $lastboot
+	#LVM use: $lvmuse
+	#Connections TPC : $ctpc ESTABLISHED
+	#User log: $ulog
+	#Network: IP $network1 ($network2)
+	#Sudo: $sucom cmd"
+
