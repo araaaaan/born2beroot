@@ -104,7 +104,7 @@ vcpu=$(cat /proc/cpuinfo | grep  processor | wc -l)
 resultmem=$(free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100 }')
 resultdisk=$(df -BM --total | grep total | awk '{printf "%d/%dGb (%d%%)", $3, ($2/1024), $5 }')
 cpuload=$(top -bn1 | grep %Cpu | awk '{print $2}')
-lastboot=$(who -b | awk '{printf $3,$4}')
+lastboot=$(who -b | awk '{printf $3" "$4}')
 lvmuse=$(lvscan | grep -q 'ACTIVE' && echo "yes" || echo "no")
 ctpc=$(ss -tunlp| grep 'tcp' | wc -l)
 # ss | grep tcp | wc -l
