@@ -108,7 +108,7 @@ lastboot=$(who -b | awk '{printf $3" "$4}')
 lvmuse=$(lvscan | grep -q 'ACTIVE' && echo "yes" || echo "no")
 ctpc=$(ss -tunlp| grep 'tcp' | wc -l)
 # ss | grep tcp | wc -l
-ulog=$(who | wc -l)
+ulog=$(who | wc -w)
 network1=$(hostname -I)
 network2=$(ip addr | grep 'link/ether'| awk '{print $2}')
 sucom=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
