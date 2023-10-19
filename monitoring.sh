@@ -94,36 +94,41 @@ wall "
 	#Network: IP $network1 $network2
 	#Sudo: $sucom cmd"
 
-#----------------------------------------------------------------
+#----------------------------------------------------------------                           
 #!/bin/bash
 
 arch=$(uname -a)
 phycpu=$(nproc)
 # cat /proc/cpuinfo | grep 'physical id' | wc -l
-vcpu=$(cat /proc/cpuinfo | grep  processor | wc -l)
-resultmem=$(free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $3/$2*100 }')
-resultdisk=$(df -BM --total | grep total | awk '{printf "%d/%dGb (%d%%)", $3, ($2/1024), $5 }')
-cpuload=$(top -bn1 | grep %Cpu | awk '{print $2}')
+vcpu=$(cat /proc/cpuinfo | grep  'processor' | wc -l)
+resultmem=$(free -m | grep 'Mem' | awk  '{ printf "%d/%dMB (%.2f%%)", $3, $2, $>
+resultdisk=$(df -BM --total | grep 'total' | awk '{printf "%d/%dGb (%d%%)", $3,>
+# sudo apt install sysstat
+cpuload=$(mpstat | grep 'all' | awk '{printf 100 - $13}')
 lastboot=$(who -b | awk '{printf $3" "$4}')
-lvmuse=$(lvscan | grep -q 'ACTIVE' && echo "yes" || echo "no")
-ctpc=$(ss -tunlp| grep 'tcp' | wc -l)
+lvmuse=$(if [ $(lsblk | grep 'lvm' | wc -l) -gt 0 ]; then echo yes; else echo n>
+ctpc=$(ss -t | grep -i 'ESTAB' | wc -l)
+# $(grep 'TCP' /proc/net/sockstat | awk '{printf $3}'} 
+# ctpc=$(ss -tunlp| grep 'tcp' | wc -l)
 # ss | grep tcp | wc -l
-ulog=$(who | wc -w)
+ulog=$(users | wc -w)
 network1=$(hostname -I)
 network2=$(ip addr | grep 'link/ether'| awk '{print $2}')
 sucom=$(journalctl _COMM=sudo | grep COMMAND | wc -l)
 
 wall " 
-	#Architecture: $arch
-	#CPU physical : $phycpu
-	#vCPU : $vcpu
-	#Memory Usage: $resultmem
-	#Disk Usage: $resultdisk
-	#CPU load: $cpuload%
-	#Last boot: $lastboot
-	#LVM use: $lvmuse
-	#Connections TPC : $ctpc ESTABLISHED
-	#User log: $ulog
-	#Network: IP $network1 ($network2)
-	#Sudo: $sucom cmd"
+        #Architecture: $arch
+        #CPU physical : $phycpu
+        #vCPU : $vcpu
+        #Memory Usage: $resultmem
+        #Disk Usage: $resultdisk
+        #CPU load: $cpuload%
+        #Last boot: $lastboot
+        #LVM use: $lvmuse
+        #Connections TPC : $ctpc ESTABLISHED
+        #User log: $ulog
+        #Network: IP $network1 ($network2)
+        #Sudo: $sucom cmd"
+
+
 
