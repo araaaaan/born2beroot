@@ -125,7 +125,7 @@ wall "
         #CPU load: $cpuload%
         #Last boot: $lastboot
         #LVM use: $lvmuse
-        #Connections TPC : $ctpc ESTABLISHED
+        #Connections TCP : $ctpc ESTABLISHED
         #User log: $ulog
         #Network: IP $network1 ($network2)
         #Sudo: $sucom cmd"
